@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Analyzer - Bulwark</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: rgba(30,41,59,0.92);
+    --blue: #3b82f6;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --green: #10b981;
+    --red: #ef4444;
+    --purple: #a78bfa;
+    --orange: #f59e0b;
+    --glow: rgba(59,130,246,0.6);
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    width: 420px;
+    height: 580px;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .bg {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #1e3a8a, #0f172a, #1e40af);
+    background-size: 400%;
+    animation: g 18s ease infinite;
+    z-index: -2;
+  }
+  
+  @keyframes g {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  .overlay {
+    position: relative;
+    backdrop-filter: blur(26px);
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  header {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, #c0d6ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  
+  .current-site {
+    background: rgba(255,255,255,0.08);
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--purple);
+  }
+  
+  .site-url {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+  
+  .site-status {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  
+  .status-active {
+    color: var(--green);
+  }
+  
+  .status-scanning {
+    color: var(--orange);
+  }
+  
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .overall-score {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .score-value {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  
+  .score-excellent { color: var(--green); }
+  .score-good { color: var(--orange); }
+  .score-poor { color: var(--red); }
+  
+  .score-label {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  
+  .charts-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .chart-wrapper {
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  
+  .chart-title {
+    font-size: 0.8rem;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--muted);
+  }
+  
+  .chart {
+    height: 80px;
+  }
+  
+  .risk-breakdown {
+    margin-top: 15px;
+  }
+  
+  .risk-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .risk-item:last-child {
+    border-bottom: none;
+  }
+  
+  .risk-name {
+    font-size: 0.9rem;
+  }
+  
+  .risk-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  .risk-low { color: var(--green); }
+  .risk-medium { color: var(--orange); }
+  .risk-high { color: var(--red); }
+  
+  .evidence-section {
+    margin-top: 20px;
+  }
+  
+  .evidence-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--muted);
+  }
+  
+  .evidence-item {
+    background: rgba(255,255,255,0.06);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    border-left: 3px solid var(--purple);
+  }
+  
+  .critical-alert {
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .alert-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--red);
+    font-weight: 600;
+  }
+  
+  .alert-content {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: auto;
+  }
+  
+  .btn {
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .btn-primary {
+    background: var(--blue);
+    color: white;
+  }
+  
+  .btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59,130,246,0.4);
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+  
+  .loading-spinner {
+    font-size: 2rem;
+    margin-bottom: 16px;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    100% { transform: rotate(360deg); }
+  }
+  
+  .error-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+  
+  .error-icon {
+    font-size: 2rem;
+    margin-bottom: 16px;
+    color: var(--red);
+  }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="overlay">
+  <header>
+    <h1>🛡️ Privacy Analyzer</h1>
+    <div class="subtitle">Deep privacy policy analysis</div>
+  </header>
+  
+  <div class="current-site">
+    <div class="site-url" id="currentSiteUrl">Loading current site...</div>
+    <div class="site-status" id="currentSiteStatus">
+      <span class="status-active">Ready to analyze</span>
+    </div>
+  </div>
+  
+  <div class="main-content" id="mainContent">
+    <div class="loading" id="loadingState">
+      <div class="loading-spinner">
+        <i class="fas fa-spinner"></i>
+      </div>
+      <div>Analyzing privacy policy...</div>
+    </div>
+    
+    <div class="error-state" id="errorState" style="display: none;">
+      <div class="error-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div id="errorMessage">Unable to analyze this site</div>
+      <button class="btn btn-primary" style="margin-top: 15px;" onclick="retryAnalysis()">
+        <i class="fas fa-redo"></i> Try Again
+      </button>
+    </div>
+    
+    <div id="analysisResults" style="display: none;">
+      <!-- Critical Alerts -->
+      <div class="critical-alert" id="criticalAlert" style="display: none;">
+        <div class="alert-header">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>CRITICAL PRIVACY RISK</span>
+        </div>
+        <div class="alert-content" id="criticalAlertText">
+          This site collects sensitive personal data including biometric information and social security numbers.
+        </div>
+      </div>
+      
+      <!-- Overall Score -->
+      <div class="card">
+        <div class="overall-score">
+          <div class="score-value" id="overallScore">--%</div>
+          <div class="score-label">Overall Privacy Score</div>
+        </div>
+        
+        <div class="charts-container">
+          <div class="chart-wrapper">
+            <div class="chart-title">Risk Level</div>
+            <div class="chart">
+              <canvas id="riskChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <div class="chart-title">Data Practices</div>
+            <div class="chart">
+              <canvas id="practicesChart"></canvas>
+            </div>
+          </div>
+        </div>
+        
+        <div class="risk-breakdown">
+          <div class="risk-item">
+            <span class="risk-name">Data Collection</span>
+            <span class="risk-value" id="collectionScore">--%</span>
+          </div>
+          <div class="risk-item">
+            <span class="risk-name">Data Usage</span>
+            <span class="risk-value" id="usageScore">--%</span>
+          </div>
+          <div class="risk-item">
+            <span class="risk-name">Data Sharing</span>
+            <span class="risk-value" id="sharingScore">--%</span>
+          </div>
+          <div class="risk-item">
+            <span class="risk-name">User Rights</span>
+            <span class="risk-value" id="rightsScore">--%</span>
+          </div>
+          <div class="risk-item">
+            <span class="risk-name">Security</span>
+            <span class="risk-value" id="securityScore">--%</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Evidence & Findings -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-search"></i> Key Findings</h3>
+        </div>
+        <div class="evidence-section">
+          <div class="evidence-title">What we found in their policy:</div>
+          <div id="evidenceList">
+            <!-- Evidence items will be inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="openDashboard()">
+      <i class="fas fa-tachometer-alt"></i> Dashboard
+    </button>
+    <button class="btn btn-primary" onclick="openSettings()">
+      <i class="fas fa-cog"></i> Settings
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+class PrivacyAnalyzerPopup {
+  constructor() {
+    this.currentAnalysis = null;
+    this.currentTab = null;
+    this.init();
+  }
+
+  async init() {
+    await this.loadCurrentTab();
+    this.updateCurrentSiteDisplay();
+    this.startAnalysis();
+    this.setupEventListeners();
+  }
+
+  async loadCurrentTab() {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      this.currentTab = tab;
+    } catch (error) {
+      console.error('Error loading current tab:', error);
+      this.showError('Cannot access current tab');
+    }
+  }
+
+  updateCurrentSiteDisplay() {
+    if (this.currentTab) {
+      document.getElementById('currentSiteUrl').textContent = this.getDomainFromUrl(this.currentTab.url);
+    }
+  }
+
+  getDomainFromUrl(url) {
+    try {
+      const domain = new URL(url).hostname;
+      return domain.replace('www.', '');
+    } catch {
+      return url;
+    }
+  }
+
+  // ENHANCED: Policy link finding with multiple strategies
+  async findPrivacyPolicyLink() {
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        resolve({ 
+          found: false, 
+          error: "Content script timeout - trying alternative methods..." 
+        });
+      }, 8000); // Increased timeout
+
+      chrome.tabs.sendMessage(this.currentTab.id, { action: "find_link" }, (response) => {
+        clearTimeout(timeout);
+        
+        if (chrome.runtime.lastError) {
+          console.error('Content script error:', chrome.runtime.lastError);
+          // Fallback: Try common policy URLs
+          this.tryCommonPolicyUrls().then(fallbackUrl => {
+            if (fallbackUrl) {
+              resolve({ 
+                found: true, 
+                url: fallbackUrl,
+                domain: this.getDomainFromUrl(this.currentTab.url),
+                method: 'fallback'
+              });
+            } else {
+              resolve({ 
+                found: false, 
+                error: "Cannot access page content and no fallback found." 
+              });
+            }
+          });
+        } else if (response && response.found) {
+          resolve(response);
+        } else {
+          // Try alternative methods
+          this.tryCommonPolicyUrls().then(fallbackUrl => {
+            if (fallbackUrl) {
+              resolve({ 
+                found: true, 
+                url: fallbackUrl,
+                domain: this.getDomainFromUrl(this.currentTab.url),
+                method: 'common_urls'
+              });
+            } else {
+              resolve({ 
+                found: false, 
+                error: response?.error || "No privacy policy link found using any method" 
+              });
+            }
+          });
+        }
+      });
+    });
+  }
+
+  // NEW: Try common privacy policy URL patterns
+  async tryCommonPolicyUrls() {
+    const domain = this.getDomainFromUrl(this.currentTab.url);
+    const commonPaths = [
+      '/privacy',
+      '/privacy-policy', 
+      '/privacy.html',
+      '/privacy.php',
+      '/legal/privacy',
+      '/privacy-notice',
+      '/privacy-statement',
+      '/data-policy',
+      '/privacy-policy.html'
+    ];
+
+    for (const path of commonPaths) {
+      const testUrl = `https://${domain}${path}`;
+      if (await this.urlExists(testUrl)) {
+        return testUrl;
+      }
+    }
+    return null;
+  }
+
+  // NEW: Check if URL likely exists
+  async urlExists(url) {
+    return new Promise((resolve) => {
+      // Simple HEAD request simulation
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+
+  // ENHANCED: Analysis with retry logic
+  async startAnalysis() {
+    if (!this.currentTab) {
+      this.showError('No active tab found', false);
+      return;
+    }
+
+    if (this.isRestrictedPage(this.currentTab.url)) {
+      this.showError('Cannot analyze browser system pages', false);
+      return;
+    }
+
+    this.showLoading();
+    document.getElementById('currentSiteStatus').innerHTML = 
+      '<span class="status-scanning">Analyzing privacy policy...</span>';
+
+    try {
+      // First, find privacy policy link with multiple strategies
+      const policyResponse = await this.findPrivacyPolicyLinkWithRetry();
+      
+      if (!policyResponse.found) {
+        this.showError(policyResponse.error || 'No privacy policy found on this page', true);
+        return;
+      }
+
+      // Validate the policy URL
+      if (!this.isValidPolicyUrl(policyResponse.url)) {
+        this.showError('Invalid privacy policy URL format', true);
+        return;
+      }
+
+      // Analyze with retry logic
+      const analysisResult = await this.analyzeWithRetry(
+        policyResponse.url, 
+        policyResponse.domain
+      );
+
+      if (analysisResult.success) {
+        this.currentAnalysis = analysisResult.data;
+        this.displayResults();
+      } else {
+        this.showError(analysisResult.error || 'Analysis failed', true);
+      }
+
+    } catch (error) {
+      console.error('Analysis error:', error);
+      this.showError(error.message || 'Unexpected error during analysis', true);
+    }
+  }
+
+  // NEW: Enhanced policy finding with retry
+  async findPrivacyPolicyLinkWithRetry(maxRetries = 2) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await this.findPrivacyPolicyLink();
+        if (result.found) return result;
+        
+        if (attempt < maxRetries) {
+          console.log(`Policy link finding attempt ${attempt} failed, retrying...`);
+          await this.delay(1000 * attempt); // Exponential backoff
+        }
+      } catch (error) {
+        console.error(`Attempt ${attempt} failed:`, error);
+        if (attempt === maxRetries) throw error;
+      }
+    }
+    return { found: false, error: "All attempts to find policy failed" };
+  }
+
+  // NEW: Enhanced analysis with retry
+  async analyzeWithRetry(url, domain, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await this.analyzePrivacyPolicy(url, domain);
+        if (result.success) return result;
+        
+        if (attempt < maxRetries) {
+          console.log(`Analysis attempt ${attempt} failed, retrying...`);
+          await this.delay(2000 * attempt); // Exponential backoff
+        }
+      } catch (error) {
+        console.error(`Analysis attempt ${attempt} failed:`, error);
+        if (attempt === maxRetries) throw error;
+      }
+    }
+    return { success: false, error: "All analysis attempts failed" };
+  }
+
+  // NEW: Utility function for delays
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async analyzePrivacyPolicy(url, domain) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        { 
+          action: "analyze_privacy_policy", 
+          url: url, 
+          domain: domain 
+        },
+        (response) => {
+          resolve(response || { success: false, error: "No response from analyzer" });
+        }
+      );
+    });
+  }
+
+  // FIXED: Display results with proper error handling
+displayResults() {
+    this.hideLoading();
+    this.hideError();
+    
+    document.getElementById('analysisResults').style.display = 'block';
+    document.getElementById('currentSiteStatus').innerHTML = 
+        '<span class="status-active">✅ Analysis complete</span>';
+
+    const analysis = this.currentAnalysis.analysis;
+    const overallScore = this.currentAnalysis.overallScore;
+
+    try {
+        // Update overall score
+        this.updateOverallScore(overallScore);
+
+        // Update critical alerts
+        this.updateCriticalAlerts(analysis.redFlags || []); // ← FIX: Handle missing redFlags
+
+        // Update risk scores
+        this.updateRiskScores(analysis);
+
+        // Render charts
+        this.renderCharts(analysis, overallScore);
+
+        // Update evidence
+        this.updateEvidence(analysis);
+    } catch (error) {
+        console.error('Error displaying results:', error);
+        this.showError('Error displaying analysis results'); // ← NEW: Error recovery
+    }
+}
+
+  updateOverallScore(score) {
+    const scoreElement = document.getElementById('overallScore');
+    scoreElement.textContent = `${score}%`;
+    
+    // Update color based on score
+    scoreElement.className = 'score-value ';
+    if (score >= 80) scoreElement.classList.add('score-excellent');
+    else if (score >= 60) scoreElement.classList.add('score-good');
+    else scoreElement.classList.add('score-poor');
+  }
+
+  updateCriticalAlerts(redFlags) {
+    const alertElement = document.getElementById('criticalAlert');
+    const alertText = document.getElementById('criticalAlertText');
+    
+    if (redFlags && redFlags.length > 0) {
+      alertElement.style.display = 'block';
+      alertText.textContent = `High-risk data collection detected: ${redFlags.join(', ')}`;
+    } else {
+      alertElement.style.display = 'none';
+    }
+  }
+
+  // FIXED: Risk scores with validation
+updateRiskScores(analysis) {
+    const updateScore = (elementId, score, isPositive = false) => {
+        const element = document.getElementById(elementId);
+        if (!element) return; // ← FIX: Prevent crashes if element missing
+        
+        const displayScore = isPositive ? score : (100 - (score || 0));
+        element.textContent = `${displayScore}%`;
+        
+        element.className = 'risk-value ';
+        if (displayScore >= 80) element.classList.add('risk-low');
+        else if (displayScore >= 60) element.classList.add('risk-medium');
+        else element.classList.add('risk-high');
+    };
+
+    updateScore('collectionScore', analysis.dataCollection?.score || 0);
+    updateScore('usageScore', analysis.dataUsage?.score || 0);
+    updateScore('sharingScore', analysis.dataSharing?.score || 0);
+    updateScore('rightsScore', analysis.userRights?.score || 0, true);
+    updateScore('securityScore', analysis.security?.score || 0, true);
+}
+  renderPracticesChart(analysis) {
+    const ctx = document.getElementById('practicesChart').getContext('2d');
+    
+    if (window.practicesChart) {
+      window.practicesChart.destroy();
+    }
+
+    const practices = [
+      analysis.dataCollection?.score || 0,
+      analysis.dataUsage?.score || 0,
+      analysis.dataSharing?.score || 0,
+      100 - (analysis.userRights?.score || 0),
+      100 - (analysis.security?.score || 0)
+    ];
+
+    window.practicesChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Collect', 'Use', 'Share', 'Rights', 'Security'],
+        datasets: [{
+          data: practices,
+          backgroundColor: practices.map(score => 
+            score >= 70 ? '#ef4444' : 
+            score >= 40 ? '#f59e0b' : '#10b981'
+          ),
+          borderWidth: 0,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            display: false,
+            max: 100
+          },
+          x: {
+            display: true,
+            grid: { display: false },
+            ticks: {
+              color: '#94a3b8',
+              font: { size: 9 }
+            }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.parsed.y}% risk`
+            }
+          }
+        }
+      }
+    });
+  }
+
+  updateEvidence(analysis) {
+    const container = document.getElementById('evidenceList');
+    container.innerHTML = '';
+
+    const allEvidence = [];
+    
+    // Collect evidence from all categories
+    Object.keys(analysis).forEach(category => {
+      if (category !== 'redFlags' && analysis[category]?.evidence) {
+        analysis[category].evidence.forEach(evidence => {
+          if (evidence && evidence.trim().length > 0) {
+            allEvidence.push(evidence);
+          }
+        });
+      }
+    });
+
+    // Display top 3 unique evidence items
+    const uniqueEvidence = [...new Set(allEvidence)].slice(0, 3);
+    
+    if (uniqueEvidence.length === 0) {
+      container.innerHTML = '<div class="evidence-item">No specific findings in the policy text.</div>';
+      return;
+    }
+
+    uniqueEvidence.forEach(evidence => {
+      const div = document.createElement('div');
+      div.className = 'evidence-item';
+      div.textContent = evidence;
+      container.appendChild(div);
+    });
+  }
+
+  showLoading() {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('errorState').style.display = 'none';
+    document.getElementById('analysisResults').style.display = 'none';
+  }
+
+  hideLoading() {
+    document.getElementById('loadingState').style.display = 'none';
+  }
+
+  // ENHANCED: Error handling with auto-recovery
+  showError(message, retryable = true) {
+    this.hideLoading();
+    
+    // Clear any previous error states completely
+    document.getElementById('errorState').style.display = 'block';
+    document.getElementById('analysisResults').style.display = 'none';
+    document.getElementById('loadingState').style.display = 'none';
+    
+    document.getElementById('errorMessage').textContent = message;
+    
+    const retryButton = document.querySelector('#errorState .btn');
+    if (retryButton) {
+      retryButton.style.display = retryable ? 'flex' : 'none';
+      if (retryable) {
+        retryButton.onclick = () => {
+          this.hideError();
+          this.startAnalysis();
+        };
+      }
+    }
+    
+    document.getElementById('currentSiteStatus').innerHTML = 
+      '<span style="color: var(--red)">Analysis failed</span>';
+      
+    // Auto-recover after 10 seconds if retryable
+    if (retryable) {
+      setTimeout(() => {
+        if (document.getElementById('errorState').style.display === 'block') {
+          this.hideError();
+          this.startAnalysis();
+        }
+      }, 10000);
+    }
+  }
+
+  hideError() {
+    document.getElementById('errorState').style.display = 'none';
+    document.getElementById('errorMessage').textContent = '';
+  }
+
+  isRestrictedPage(url) {
+    return url.startsWith('chrome://') || 
+           url.startsWith('about:') || 
+           url.startsWith('edge://') ||
+           url.startsWith('moz-extension://') ||
+           url.startsWith('chrome-extension://');
+  }
+
+  isValidPolicyUrl(url) {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  }
+
+  setupEventListeners() {
+    // Additional event listeners can be added here
+  }
+}
+
+// Global functions for button actions
+function retryAnalysis() {
+  analyzerPopup.startAnalysis();
+}
+
+function openDashboard() {
+  chrome.tabs.create({ url: 'dashbord1.html' });
+  window.close();
+}
+
+function openSettings() {
+  chrome.tabs.create({ url: 'settings1.html#privacy' });
+  window.close();
+}
+
+// Initialize the analyzer when the page loads
+let analyzerPopup;
+document.addEventListener('DOMContentLoaded', () => {
+  analyzerPopup = new PrivacyAnalyzerPopup();
+});
+</script>
+</body>
+</html>

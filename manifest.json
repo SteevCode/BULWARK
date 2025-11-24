@@ -1,0 +1,70 @@
+{
+  "manifest_version": 3,
+  "name": "Bulwark: Privacy & Protection",
+  "version": "2.1.0",
+  "description": "Ad blocking, privacy analysis, time management, and site blocking",
+  
+  "permissions": [
+    "storage",
+    "tabs",
+    "webNavigation",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "notifications",
+    "activeTab"
+  ],
+  
+  "host_permissions": ["<all_urls>"],
+  
+  "declarative_net_request": {
+  "rule_resources": [
+    {
+      "id": "adblock_rules",
+      "enabled": true,
+      "path": "rules.json"
+    }
+  ]
+},
+"permissions": [
+  "storage",
+  "tabs",
+  "webNavigation",
+  "declarativeNetRequest",
+  "declarativeNetRequestFeedback",
+  "notifications",
+  "activeTab"
+],
+"host_permissions": ["<all_urls>"]
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_popup": "popup1.html",
+    "default_title": "Bulwark"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"],
+      "css": ["cosmetic.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "blocked.html",
+        "analyzerpopup.html",
+        "dashbord1.html",
+        "settings1.html",
+        "popup1.html",
+        "popup.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

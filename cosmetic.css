@@ -1,0 +1,17 @@
+/* cosmetic.css */
+[class*="ad-"], [class*="ads-"], [class*="Ad"], [class*="banner"],
+[id*="ad-"], [id*="Ad"], [id*="banner"],
+[data-ad], [data-ads], .advertisement, .adsbox, .ad-block,
+.google_ad, .doubleclick, .ad-container, .ad-slot,
+#google_ads_iframe, [id^="div-gpt-ad"], [id*="google_ads"],
+iframe[src*="doubleclick.net"], iframe[src*="googlesyndication.com"],
+ins.adsbygoogle, [data-ad-slot], .ad-banner,
+.reklama, .pub_300x250, .adsbygoogle-noablate,
+.ad-placement, .ad-wrapper, .ad-unit {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
