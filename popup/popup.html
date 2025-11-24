@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulwark</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Split CSS -->
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <h1>Bulwark</h1>
+
+  <!-- KILL SWITCH -->
+  <button id="killSwitch" class="on">ON</button>
+
+  <!-- TIME LIMIT -->
+  <div class="time">
+    <div id="timeNum" class="no">Loading...</div>
+    <div id="timeDetails"></div>
+  </div>
+
+  <!-- ACTIVE FEATURES -->
+  <div class="list">
+    <div class="item"><span>Ad Blocker</span><span class="active">ON</span></div>
+    <div class="item"><span>Phishing Protection</span><span class="active">ON</span></div>
+    <div class="item"><span>Time Restriction</span><span id="timeStatus" class="inactive">OFF</span></div>
+    <div class="item"><span>Privacy Guard</span><span class="active">ON</span></div>
+    <div class="item"><span>Site Blocker</span><span class="active">ON</span></div>
+  </div>
+
+  <!-- BOTTOM BUTTONS -->
+  <div class="bottom">
+    <div class="btn dash" id="openDashboard">Dashboard</div>
+    <div class="btn set" id="openSettings">Settings</div>
+    <div class="btn analyzer" id="openAnalyzer">
+      <i class="fas fa-shield-alt"></i> Privacy Scan
+    </div>
+  </div>
+
+  <!-- Split JS (no type="module" needed in MV3 popup) -->
+  <script src="popup.js"></script>
+</body>
+</html>
