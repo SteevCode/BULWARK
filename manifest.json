@@ -3,7 +3,6 @@
   "name": "Bulwark: Privacy & Protection",
   "version": "2.1.0",
   "description": "Ad blocking, privacy analysis, time management, and site blocking",
-  
   "permissions": [
     "storage",
     "tabs",
@@ -13,58 +12,51 @@
     "notifications",
     "activeTab"
   ],
-  
-  "host_permissions": ["<all_urls>"],
-  
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "declarative_net_request": {
-  "rule_resources": [
-    {
-      "id": "adblock_rules",
-      "enabled": true,
-      "path": "rules.json"
-    }
-  ]
-},
-"permissions": [
-  "storage",
-  "tabs",
-  "webNavigation",
-  "declarativeNetRequest",
-  "declarativeNetRequestFeedback",
-  "notifications",
-  "activeTab"
-],
-"host_permissions": ["<all_urls>"]
-  
-  "background": {
-    "service_worker": "background.js"
+    "rule_resources": [
+      {
+        "id": "adblock_rules",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
   },
-  
+  "background": {
+    "service_worker": "BULWARK/background/wrapper.js"
+  },
   "action": {
-    "default_popup": "popup1.html",
+    "default_popup": "BULWARK/popup/popup.html",
     "default_title": "Bulwark"
   },
-
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content-script.js"],
-      "css": ["cosmetic.css"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "BULWARK/content/content-script.js"
+      ],
       "run_at": "document_idle"
     }
   ],
-  
   "web_accessible_resources": [
     {
       "resources": [
-        "blocked.html",
-        "analyzerpopup.html",
-        "dashbord1.html",
-        "settings1.html",
-        "popup1.html",
-        "popup.js"
+        "BULWARK/content/injected.js",
+        "BULWARK/blocked/blocked.html",
+        "BULWARK/blocked/blocked_phishing.html",
+        "BULWARK/blocked/blocked_site.html",
+        "BULWARK/dashboard/dashboard.html",
+        "BULWARK/settings/settings.html",
+        "BULWARK/popup/popup.html",
+        "BULWARK/popup/popup.js"
       ],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

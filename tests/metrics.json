@@ -1,0 +1,20 @@
+{
+  "targets": {
+    "phishing_accuracy": 92,
+    "false_positive_rate": 3,
+    "ad_block_coverage": 95,
+    "extension_memory_mb": 60,
+    "backend_latency_ms": 120,
+    "crash_rate": 0
+  },
+  "current_status": {
+    "last_updated": "2025-01-01",
+    "phishing_accuracy": 88,
+    "false_positive_rate": 5,
+    "ad_block_coverage": 98,
+    "extension_memory_mb": 45,
+    "backend_latency_ms": 150,
+    "crash_rate": 0
+  },
+  "history": []
+}

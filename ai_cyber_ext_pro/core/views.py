@@ -59,23 +59,57 @@ def predict_risk(request):
              vt_score = 0
 
         X = vectorizer.transform([url])
-        prediction = model.predict(X)[0]
+        # Get probability (0.0 to 1.0) instead of just class
+        risk_prob = model.predict_proba(X)[0][1] * 100 # Convert to percentage
         
-        # Combined Risk Assessment
-        if prediction == 1 or vt_score > 0:
+        # --- NEW DECISION LOGIC ---
+        # Heuristic adjustments
+        reasons = []
+        final_score = max(risk_prob, vt_score)
+
+        # 1. Feature Analysis (Simple Heuristics for "Explainability")
+        if len(url) > 75:
+            final_score += 10
+            reasons.append("URL is suspiciously long")
+        if re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', url):
+            final_score += 20
+            reasons.append("Uses raw IP address")
+        if "@" in url:
+            final_score += 30
+            reasons.append("Contains '@' symbol (obfuscation)")
+        if "secure" in url or "login" in url or "verify" in url:
+            if final_score > 30: # Only flag if already suspicious
+                final_score += 10
+                reasons.append("Uses sensitive keywords")
+
+        final_score = min(final_score, 100) # Cap at 100
+
+        # 2. 3-Tier Classification
+        if final_score >= 71:
             ml_result = "Phishing / Unsafe"
+            action = "block"
+        elif final_score >= 41:
+            ml_result = "Suspicious"
+            action = "warn"
+            if not reasons: reasons.append("Statistical anomaly detected")
         else:
             ml_result = "Safe"
+            action = "allow"
             
     except Exception as e:
         print(f"Prediction Error: {e}")
         ml_result = "error"
+        action = "allow"
         vt_score = 0
+        final_score = 0
+        reasons = ["Server error during analysis"]
 
     return Response({
         "url": url,
         "risk": ml_result,
-        "risk_score": vt_score
+        "risk_score": float(final_score),
+        "action": action,
+        "reasons": reasons
     })
 
 def analyze_policy(request):
