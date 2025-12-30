@@ -982,5 +982,6 @@ PHISHING_BLACKLIST = {
     "http://verizon.jkpdm.icu/pay/",
     "http://verizon.mchwz.icu/pay/",
     "http://verizon.ifupv.icu/pay/",
+    "https://cn.mpmxzu.com/home/register?code=21449",
     "http://verizon.lzpas.icu/pay/"
 }
