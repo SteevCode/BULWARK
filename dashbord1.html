@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulwark Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root{
+    --bg:#0f172a;--card:rgba(30,41,59,0.88);--blue:#3b82f6;--text:#f8fafc;--muted:#94a3b8;
+    --green:#10b981;--red:#ef4444;--glow:rgba(59,130,246,0.6);--red-glow:rgba(239,68,68,0.7)
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-y:auto;position:relative}
+ 
+  .bg{position:fixed;inset:0;background:linear-gradient(135deg,#1e3a8a,#0f172a,#1e40af);background-size:400%;animation:g 18s ease infinite;z-index:-2}
+  @keyframes g{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .bg::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 80%,rgba(59,130,246,.35),transparent 50%),radial-gradient(circle at 80% 20%,rgba(30,58,138,.35),transparent 50%);animation:p 22s ease infinite}
+  @keyframes p{0%,100%{opacity:.4}50%{opacity:.8}}
+ 
+  .overlay{position:relative;backdrop-filter:blur(26px);padding:22px 18px}
+  header{position:relative;display:flex;justify-content:center;align-items:center;margin-bottom:34px}
+  header h1{font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,#ffffff,#e0e7ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 4px 30px rgba(0,0,0,.4)}
+ 
+  .settings-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);padding:14px;border-radius:16px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);cursor:pointer;transition:all .35s;box-shadow:0 6px 25px rgba(0,0,0,.5)}
+  .settings-btn:hover{background:var(--blue);transform:translateY(-50%) scale(1.15);box-shadow:0 12px 40px var(--glow)}
+  .grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:24px;max-width:1400px;margin:0 auto}
+ 
+  .card{position:relative;background:var(--card);border-radius:24px;padding:28px;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(18px);box-shadow:0 12px 50px rgba(0,0,0,.45);transition:all .45s;overflow:hidden}
+  .card:hover{transform:translateY(-14px);box-shadow:0 28px 70px rgba(0,0,0,.6)}
+  .card::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(59,130,246,.2),transparent);opacity:0;transition:opacity .45s}
+  .card:hover::before{opacity:1}
+  .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .card h2{font-size:1.42rem;font-weight:700;display:flex;align-items:center;gap:14px}
+  .card h2 a{color:inherit;text-decoration:none}
+  .card h2 a:hover{color:var(--blue)}
+  /* Switch */
+  .switch-row{display:flex;justify-content:space-between;align-items:center;margin:18px 0}
+  .switch{position:relative;display:inline-block;width:66px;height:36px}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:#475569;border-radius:34px;transition:.4s;box-shadow:inset 0 3px 8px rgba(0,0,0,.4)}
+  .slider:before{position:absolute;content:"";height:28px;width:28px;left:4px;bottom:4px;background:#fff;border-radius:50%;transition:.4s;box-shadow:0 3px 10px rgba(0,0,0,.4)}
+  input:checked+.slider{background:var(--blue)}
+  input:checked+.slider:before{transform:translateX(30px)}
+  /* Stats */
+  .stat{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-bottom:1px dashed rgba(255,255,255,.14)}
+  .stat:last-child{border:none}
+  .stat-num{font-size:2.6rem;font-weight:800;background:linear-gradient(135deg,#60a5fa,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  /* Time Card */
+  .time-big{font-size:3.2rem;font-weight:800;margin:18px 0}
+  .no-limit{color:var(--muted);font-size:1.1rem}
+  /* Button */
+  .btn{margin-top:18px;padding:16px;background:linear-gradient(135deg,var(--blue),#1d4ed8);border:none;border-radius:16px;color:white;font-weight:700;cursor:pointer;width:100%;transition:.35s;box-shadow:0 8px 25px rgba(59,130,246,.5)}
+  .btn:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(59,130,246,.7)}
+  /* Privacy & Activity Lists */
+  .list{margin-top:16px;display:grid;gap:12px}
+  .item{display:grid;grid-template-columns:1fr auto;padding:14px;background:rgba(255,255,255,.06);border-radius:14px;transition:.3s}
+  .item:hover{background:rgba(59,130,246,.18);transform:translateX(6px)}
+  .log{max-height:280px;overflow-y:auto;padding-right:6px;font-size:0.94rem}
+  .log p{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+  /* === SITE BLOCKER – SIMPLIFIED === */
+  .blocked-list{max-height:300px;overflow-y:auto;display:grid;gap:12px;padding-right:6px}
+  .blocked-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:14px;transition:all .35s;position:relative;overflow:hidden}
+  .blocked-item:hover{background:rgba(239,68,68,.22);transform:translateX(6px);border-color:#ef4444}
+  .blocked-item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#ef4444;border-radius:4px}
+  .remove-site{color:var(--red);cursor:pointer;font-size:1.3rem;padding:8px;border-radius:50%;transition:all .3s}
+  .remove-site:hover{background:rgba(239,68,68,.3);transform:scale(1.3) rotate(90deg)}
+  .blocked-count{margin-top:18px;font-size:1rem;color:var(--muted)}
+  .blocked-count strong{color:white;font-size:1.4rem;font-weight:800}
+  @keyframes fadeOut {from{opacity:1;transform:translateY(0);height:auto;padding:14px 16px;margin:6px 0} to{opacity:0;transform:translateY(-20px);height:0;padding:0;margin:0}}
+  @media (max-width:1024px){
+    .grid{grid-template-columns:repeat(2, 1fr)}
+  }
+  @media (max-width:640px){
+    header h1{font-size:1.9rem}
+    .grid{grid-template-columns:1fr;gap:20px}
+    .card{padding:24px}
+    .time-big{font-size:2.7rem}
+  }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="overlay">
+  <header>
+    <h1>Bulwark Dashboard</h1>
+    <div class="settings-btn" onclick="chrome.tabs.create({url:'settings1.html'})">
+      <i class="fas fa-cog fa-lg"></i>
+    </div>
+  </header>
+  <div class="grid">
+    <!-- 1. Protection -->
+    <!-- Current Protection Card - JUST UPDATE STATS -->
+<div class="card">
+  <div class="card-header">
+    <h2><a href="#"><i class="fas fa-shield-virus"></i> Protection</a></h2>
+  </div>
+  <div class="switch-row">
+    <span style="font-weight:600">Master Protection</span>
+    <label class="switch"><input type="checkbox" id="masterSwitch" checked><span class="slider"></span></label>
+  </div>
+  <div class="stat">
+    <div>Ads Blocked</div>
+    <div class="stat-num" id="adsBlocked">0</div>
+  </div>
+  <div class="stat">
+    <div>Trackers Blocked</div>
+    <div class="stat-num" id="trackersBlocked">0</div>
+  </div>
+  <div class="stat">
+    <div>Phishing Blocked</div>
+    <div class="stat-num" id="phishing">0</div>
+  </div>
+</div>
+    <!-- 2. Time Limits -->
+    <div class="card">
+      <div class="card-header">
+        <h2><a href="#"><i class="fas fa-clock"></i> Time Limits</a></h2>
+      </div>
+      <div class="time-big" id="timeUsed">
+        <span class="no-limit">Loading...</span>
+      </div>
+      <div id="siteTimeInfo" style="margin: 10px 0; font-size: 0.9rem; color: var(--muted);"></div>
+      <button class="btn" onclick="chrome.tabs.create({url:'settings1.html#time'})">Manage Restrictions</button>
+    </div>
+    <!-- 3. Privacy Score -->
+    <div class="card">
+      <div class="card-header">
+        <h2><a href="#"><i class="fas fa-user-secret"></i> Privacy Score</a></h2>
+      </div>
+      <div class="list" id="privacyScoresList">
+        <!-- Dynamic privacy scores will be inserted here -->
+      </div>
+      <div style="margin-top:16px;color:var(--muted)">Analyzed today: <strong style="color:white" id="dailyAnalyzed">0</strong></div>
+   
+    <!-- Add this button below the privacy scores list -->
+<button class="btn" onclick="chrome.tabs.create({url:'analyzerpopup.html'})" style="margin-top: 12px; background: var(--purple);">
+  <i class="fas fa-search"></i> Scan Current Site
+</button>
+ </div>
+    <!-- 4. Recent Activity -->
+    <div class="card">
+      <div class="card-header">
+        <h2><a href="#"><i class="fas fa-history"></i> Recent Activity</a></h2>
+      </div>
+      <div class="log" id="activityLog">
+        <!-- Dynamic activity log will be inserted here -->
+      </div>
+    </div>
+    <!-- 5. Site Blocker – SIMPLIFIED LIST ONLY -->
+    <div class="card">
+      <div class="card-header">
+        <h2><a href="#"><i class="fas fa-ban"></i> Site Blocker</a></h2>
+      </div>
+      <div class="blocked-list" id="blockedSitesList">
+        <!-- Blocked sites will appear here -->
+      </div>
+      <div class="blocked-count">
+        Total blocked: <strong id="blockedCount">0</strong> sites
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// Load all dashboard data
+document.addEventListener('DOMContentLoaded', function() {
+  loadTimeData();
+  loadPrivacyData();
+  loadBlockedSites();
+  loadActivityLog();
+  loadProtectionStats();
+});
+
+// Time data loading for dashboard
+function loadTimeData() {
+  chrome.runtime.sendMessage({action: "time_getStats"}, response => {
+    if (response && response.success) {
+      updateTimeDisplay(response.data);
+    } else {
+      console.error('Failed to load time data');
+      document.getElementById('timeUsed').innerHTML = '<span class="no-limit">Error loading</span>';
+    }
+  });
+}
+
+function updateTimeDisplay(data) {
+  const timeElement = document.getElementById('timeUsed');
+  const siteInfoElement = document.getElementById('siteTimeInfo');
+  
+  try {
+    if (data.globalLimit && data.globalLimit > 0) {
+      const percentage = (data.globalUsed / data.globalLimit) * 100;
+      const color = percentage >= 90 ? '#ef4444' : percentage >= 75 ? '#f59e0b' : '#10b981';
+      
+      timeElement.innerHTML = `
+        <div style="color: ${color}; font-weight: 800;">${data.globalUsed}</div>
+        <small style="font-size:1.5rem;color:#94a3b8">/${data.globalLimit}</small>
+        <div style="font-size: 0.8rem; color: var(--muted); margin-top: 5px;">
+          ${Math.round(percentage)}% used today
+        </div>
+      `;
+    } else {
+      timeElement.innerHTML = '<span class="no-limit">No limit set</span>';
+    }
+    
+    // Show active site limits
+    const activeLimits = data.siteLimits ? data.siteLimits.filter(site => site.enabled && site.used > 0) : [];
+    if (activeLimits.length > 0) {
+      let siteInfo = 'Active limits: ';
+      siteInfo += activeLimits.slice(0, 3).map(site => 
+        `${site.site} (${site.used}/${site.limit}min)`
+      ).join(', ');
+      
+      if (activeLimits.length > 3) {
+        siteInfo += ` +${activeLimits.length - 3} more`;
+      }
+      
+      siteInfoElement.textContent = siteInfo;
+    } else {
+      siteInfoElement.textContent = data.siteLimits && data.siteLimits.length > 0 ? 
+        `${data.siteLimits.length} site limits configured` : 
+        'No site limits set';
+    }
+    
+  } catch (error) {
+    console.error('Error updating time display:', error);
+    timeElement.innerHTML = '<span class="no-limit">Error</span>';
+    siteInfoElement.textContent = '';
+  }
+}
+
+// Privacy data loading
+function loadPrivacyData() {
+  chrome.runtime.sendMessage({action: "get_privacy_stats"}, response => {
+    if (response && response.success) {
+      updatePrivacyDisplay(response.data);
+    } else {
+      console.error('Failed to load privacy data');
+      document.getElementById('dailyAnalyzed').textContent = '0';
+    }
+  });
+}
+
+function updatePrivacyDisplay(data) {
+  // Update daily analyzed count
+  document.getElementById('dailyAnalyzed').textContent = data.dailyAnalyzed || 0;
+  
+  // Update privacy scores list
+  const container = document.getElementById('privacyScoresList');
+  container.innerHTML = '';
+  
+  if (data.storedSites && data.storedSites.length > 0) {
+    data.storedSites.slice(0, 4).forEach(site => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      const scoreColor = site.overallScore >= 80 ? 'var(--green)' : 
+                        site.overallScore >= 60 ? '#f59e0b' : 'var(--red)';
+      
+      div.innerHTML = `
+        <span>${site.domain}</span>
+        <span style="color:${scoreColor}; font-weight:600">${site.overallScore}%</span>
+      `;
+      container.appendChild(div);
+    });
+  } else {
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:10px">No privacy data yet</div>';
+  }
+}
+
+// Site Blocker functionality
+function removeSite(siteToRemove) {
+  const blockedSites = JSON.parse(localStorage.getItem('blockedSites') || '[]');
+  const updated = blockedSites.filter(s => s !== siteToRemove);
+  localStorage.setItem('blockedSites', JSON.stringify(updated));
+  loadBlockedSites();
+}
+
+function loadBlockedSites() {
+  const blockedSites = JSON.parse(localStorage.getItem('blockedSites') || '[]');
+  const container = document.getElementById('blockedSitesList');
+  container.innerHTML = '';
+  
+  if (blockedSites.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px">No sites blocked yet</div>';
+  } else {
+    blockedSites.forEach(site => {
+      const div = document.createElement('div');
+      div.className = 'blocked-item';
+      div.innerHTML = `
+        <span style="font-weight:600">${site}</span>
+        <i class="fas fa-trash-alt remove-site" onclick="removeSite('${site}')"></i>
+      `;
+      container.appendChild(div);
+    });
+  }
+  
+  document.getElementById('blockedCount').textContent = blockedSites.length;
+}
+
+// Activity log
+function loadActivityLog() {
+  const activityLog = [
+    { icon: 'fa-check-circle', color: 'var(--green)', text: 'Protection enabled' },
+    { icon: 'fa-search', color: 'var(--text)', text: 'Privacy analysis active' },
+    { icon: 'fa-exclamation-triangle', color: '#f59e0b', text: 'Site blocker enabled' },
+    { icon: 'fa-ban', color: 'var(--red)', text: 'Ads blocking active' },
+    { icon: 'fa-clock', color: '#60a5fa', text: 'Time tracking running' }
+  ];
+  
+  const container = document.getElementById('activityLog');
+  container.innerHTML = '';
+  
+  activityLog.forEach(activity => {
+    const p = document.createElement('p');
+    p.innerHTML = `<i class="fas ${activity.icon}" style="color:${activity.color}"></i> ${activity.text}`;
+    container.appendChild(p);
+  });
+}
+
+// Protection stats
+function loadProtectionStats() {
+  // Simulate some protection stats
+  document.getElementById('phishing').textContent = Math.floor(Math.random() * 20) + 5;
+  document.getElementById('ads').textContent = Math.floor(Math.random() * 100) + 50;
+}
+
+// Initialize with some example blocked sites if none exist
+if (!localStorage.getItem('blockedSites')) {
+  localStorage.setItem('blockedSites', JSON.stringify(['facebook.com', 'twitter.com', 'instagram.com']));
+  loadBlockedSites();
+}
+
+// Refresh data every minute
+setInterval(() => {
+  loadTimeData();
+  loadPrivacyData();
+}, 60000);
+// Enhanced loadProtectionStats function
+function loadProtectionStats() {
+  // Get ad blocker stats
+  chrome.runtime.sendMessage({action: "get_adblocker_stats"}, response => {
+    if (response && response.success) {
+      document.getElementById('adsBlocked').textContent = response.data.adsBlocked || 0;
+      document.getElementById('trackersBlocked').textContent = response.data.trackersBlocked || 0;
+    } else {
+      // Fallback if ad blocker not available
+      document.getElementById('adsBlocked').textContent = '0';
+      document.getElementById('trackersBlocked').textContent = '0';
+    }
+  });
+  
+  // Keep existing phishing stats
+  document.getElementById('phishing').textContent = Math.floor(Math.random() * 20) + 5;
+}
+
+// Call this in your existing DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+  loadTimeData();
+  loadPrivacyData();
+  loadBlockedSites();
+  loadActivityLog();
+  loadProtectionStats(); // Make sure this is called
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:#0f172a;
+  color:#f8fafc;
+  width:340px;
+  height:420px;
+  padding:20px;
+  overflow:hidden;
+}
+
+h1{
+  text-align:center;
+  font-size:1.6rem;
+  font-weight:700;
+  margin-bottom:20px;
+  background:linear-gradient(135deg,#fff,#e0e7ff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+/* KILL SWITCH */
+#killSwitch{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:14px;
+  font-size:1.3rem;
+  font-weight:700;
+  cursor:pointer;
+  margin-bottom:20px;
+}
+.on{background:#10b981;color:white}
+.off{background:#ef4444;color:white}
+
+/* TIME LIMIT */
+.time{
+  text-align:center;
+  background:rgba(59,130,246,.15);
+  padding:16px;
+  border-radius:12px;
+  margin-bottom:20px;
+  border:1px solid rgba(59,130,246,.4);
+}
+.num{font-size:2.6rem;font-weight:800;color:#60a5fa}
+.no{color:#94a3b8;font-size:1rem}
+
+/* FEATURES LIST */
+.list{font-size:0.94rem;margin-bottom:20px}
+.item{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 12px;
+  background:rgba(255,255,255,.06);
+  border-radius:10px;
+  margin-bottom:8px;
+}
+.active{color:#10b981;font-weight:600}
+.inactive{color:#ef4444;font-weight:600}
+
+/* BOTTOM BUTTONS */
+.bottom{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{
+  padding:14px;
+  border-radius:12px;
+  text-align:center;
+  font-weight:600;
+  cursor:pointer;
+  border:1px solid transparent;
+}
+.dash{background:#3b82f6;color:white}
+.set{background:#6366f1;color:white}
+.analyzer{
+  background:#a78bfa;
+  color:white;
+  grid-column: 1 / -1;
+}
