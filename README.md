@@ -1,128 +1,181 @@
 # 🛡️ Site Guard AI (Bulwark)
-> **Advanced Hybrid Phishing & Privacy Protection**  
-> *Version 3.2 | Status: Production Ready*
+> **Advanced Hybrid Phishing & Privacy Protection System**  
+> *Version 3.5 | Status: Production Ready*
 
 ---
 
 ## 📑 Table of Contents
-1.  [🚀 Quick Start](#-quick-start)
-2.  [🏗️ System Architecture](#-system-architecture)
-3.  [features](#-core-features--logic)
-    *   [Phishing Detection (3-Tier)](#1-phishing-detection-ai-3-tier)
-    *   [Ad Blocker (DiamondWall)](#2-ad-blocker-diamondwall)
-    *   [Privacy Lens](#3-privacy-analysis-bulwark-lens)
-4.  [🛠️ Developer's Manual](#-developers-manual)
-5.  [🧪 QA & Testing](#-qa--testing)
+1.  [🚀 Quick Start Guide](#-quick-start-guide)
+2.  [🏗️ System Architecture & Connection](#-system-architecture--connection)
+3.  [🔄 Detailed Workflow](#-detailed-workflow)
+4.  [🧠 Capabilities & Functions](#-capabilities--functions)
+    *   [Phishing Detection (AI-Powered)](#1-phishing-detection-ai-powered)
+    *   [DiamondWall Ad Blocker](#2-diamondwall-ad-blocker)
+    *   [Privacy Lens](#3-privacy-lens)
+5.  [💾 Data Storage & Schema](#-data-storage--schema)
+6.  [🛠️ Developer Manual](#-developer-manual)
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start Guide
 
-**Prerequisites**: Python 3.10+, Google Chrome.
+### Prerequisites
+*   **OS**: Windows 10/11
+*   **Browser**: Google Chrome / Brave / Edge
+*   **Runtime**: Python 3.10+ (Ensure Python is added to PATH)
 
+### Installation & Running
 1.  **Install Dependencies** (First time only):
+    Open a terminal in this folder and run:
     ```bash
     pip install -r requirements.txt
     ```
 
-2.  **Launch System**:
+2.  **Start the System**:
     Double-click the **`Run_SiteGuard.bat`** file in the root directory.
-    *   ✅ Activates Python environment.
-    *   ✅ Starts local AI Server (`localhost:8000`).
-    *   ✅ Opens Chrome to extensions page.
+    *   ✅ **Activates** Python environment.
+    *   ✅ **Starts** local AI Server on `http://127.0.0.1:8000`.
+    *   ✅ **Opens** Chrome to the extensions page.
 
-> **Note**: The console window that opens is the AI Server. **Do not close it**, or phishing detection will stop working.
+3.  **Load the Extension**:
+    *   In Chrome, go to `chrome://extensions/`.
+    *   Enable **Developer Mode** (top right).
+    *   Click **Load Unpacked**.
+    *   Select the `BULWARK` folder inside this project.
 
----
-
-## 🏗️ System Architecture
-
-Bulwark uses a **Hybrid Architecture** combining a fast browser extension with a powerful local ML backend.
-
-```mermaid
-graph LR
-    User[User Visits URL] --> Ext[Chrome Extension]
-    Ext -->|Check Risk| AI[Local Django Server]
-    Ext -->|Block Ads| Browser[Chrome DNR API]
-    
-    subgraph AI Backend
-    AI -->|Extract Features| ML[Random Forest Model]
-    AI -->|3-Tier Decision| Logic[Allow/Warn/Block]
-    AI -->|Verify| VT[VirusTotal API]
-    end
-    
-    ML -->|Risk Score + Reasons| Ext
-    Ext -->|Block w/ Explanations| User
-```
+> **IMPORTANT**: Keep the black console window open! This is the AI Brain. If you close it, phishing detection will stop working (but Ad Blocking will still work).
 
 ---
 
-## 🧠 Core Features & Logic
+## 🏗️ System Architecture & Connection
 
-### 1. Phishing Detection (AI 3-Tier)
+This project uses a **Hybrid Client-Server Architecture**:
+
+1.  **Frontend (Chrome Extension - `BULWARK/`)**:
+    *   Interacts with the user.
+    *   Captures URLs and page content.
+    *   Blocks ads locally using static rules.
+    *   **Communicates** with the backend via HTTP REST API.
+
+2.  **Backend (Local AI Server - `ai_cyber_ext_pro/`)**:
+    *   Powered by **Django** + **Scikit-Learn** + **Transformers**.
+    *   Hosts the Machine Learning models.
+    *   Performs heavy Privacy Policy analysis using NLP.
+
+### 🔗 Connection Details
+The Extension talks to the Backend via standard HTTP requests:
+
+| Feature | Endpoint | Method | Payload | Function |
+| :--- | :--- | :--- | :--- | :--- |
+| **Phishing** | `http://127.0.0.1:8000/api/predict-risk/` | `GET` | `?url=...` | Returns Risk Score (0-100) & Action |
+| **Privacy** | `http://127.0.0.1:8000/api/analyze-privacy/` | `POST` | `{"text": "..."}` | Returns Summary & Risk Keywords |
+
+---
+
+## 🔄 Detailed Workflow
+
+### 1. Phishing Detection Flow
+1.  **User Navigates**: User visits `http://example.com`.
+2.  **Whitelist Check**: Extension (`background.js`) checks `SITE_EXCLUSIONS`.
+    *   *If Safe (e.g., Google, OpenAI)*: **ALLOW** immediately.
+3.  **AI Analysis**: Extension sends URL to API (`/api/predict-risk/`).
+4.  **Backend Logic**:
+    *   Extracts features (URL length, domain entropy, suspicious keywords).
+    *   Runs Random Forest Model.
+    *   Returns `Action: Block` if Score > 70%.
+5.  **Enforcement**: Extension sees `Block` action -> Redirects tab to `blocked_phishing.html`.
+6.  **Logging**: Event is logged to `phishingHistory` in storage.
+
+### 2. Ad Blocking Flow
+1.  **Request Initiation**: Browser prepares to load resources (images, scripts).
+2.  **DNR Engine**: `chrome.declarativeNetRequest` intercepts request.
+3.  **Rule Matching**: Checks against 5000+ static rules (Ads, Trackers, Analytics).
+4.  **Action**:
+    *   **Block**: Request is cancelled.
+    *   **Allow**: Whitelisted sites pass through.
+5.  **Counting**: blocked count increments in local stats.
+
+---
+
+## 🧠 Capabilities & Functions
+
+### 1. Phishing Detection (AI-Powered)
+*   **Class**: `BulwarkEngine` (in `background.js`)
+*   **Function**: `checkPhishingRisk(url)`
 *   **Logic**:
-    *   **0-40% (Allow)**: Safe.
-    *   **41-70% (Warn)**: Suspicious features (e.g., high entropy, IP address). User is warned.
-    *   **71-100% (Block)**: Dangerous. Blocked immediately.
-*   **Explainability**: The Block Page now lists **specific reasons** (e.g., "Suspicious keywords detected", "Domain age < 30 days").
-*   **Key File**: `ai_cyber_ext_pro/core/views.py`
+    *   **Score 0-40**: Safe.
+    *   **Score 41-70**: **Suspicious**. Shows warning badge.
+    *   **Score 71-100**: **Phishing**. Full page block.
+*   **Database**: Stores history of blocked sites for the Dashboard.
 
-### 2. Ad Blocker (DiamondWall)
-*   **Network Blocking**: Uses `declarativeNetRequest` with 5000+ rules (EasyList + d3ward).
-*   **Rule Health Monitor**: Automatically checks for rule collisions and warns if nearing Chrome's 5,000 limit.
-*   **Popup Killer**: Aggressively blocks `window.open` calls from known ad patterns.
-*   **Key File**: `BULWARK/background/adblocker-tracker.js`
+### 2. DiamondWall Ad Blocker
+*   **Class**: `DiamondWallAdBlocker` (in `adblocker-tracker.js`)
+*   **Features**:
+    *   **Recursive Wildcard Support**: Fixes manifest V3 limitations.
+    *   **Categorized Blocking**: Ads, Analytics, Social, OEM.
+    *   **Smart Whitelisting**: Ensures Google Docs/Drive always work.
 
-### 3. Privacy Analysis (Bulwark Lens)
-*   **Weighted Scoring**: Grades policy based on:
-    *   **Data Sharing (40%)**: Who gets your data?
-    *   **Rights (30%)**: Can you delete it?
-    *   **Security (20%)**: Is it encrypted?
-    *   **Retention (10%)**: How long is it kept?
-*   **Key File**: `BULWARK/background/privacy-analyzer.js`
+### 3. Privacy Lens
+*   **Backend**: `privacy_app/views.py`
+*   **AI Model**: `facebook/bart-large-cnn` (Hugging Face) for summarization.
+*   **Logic**: extracting keywords like "sell data", "third party", "cookies" to calculate a privacy score.
 
 ---
 
-## 🧪 QA & Testing
+## 💾 Data Storage & Schema
 
-We include a professional QA pipeline to verify integrity.
+The extension uses `chrome.storage.local` to persist user data. Here is the data structure:
 
-### 1. Backend Tests
-Run the automated phishing simulation:
-```bash
-python tests/test_phishing.py
+```json
+{
+  "killSwitch": true,          // Global Enable/Disable
+  "blockedSitesEnabled": true, // Manual Site Blocker Toggle
+  
+  "stats": {                   // Core Statistics
+    "adsBlocked": 1240,
+    "phishingBlocked": 15,     // *NEW*
+    "sitesBlocked": 45,
+    "privacyScans": 8
+  },
+  
+  "phishingHistory": [         // *NEW* List of blocked threats
+    {
+      "url": "http://evil-site.com",
+      "risk": 85,
+      "label": "phishing",
+      "timestamp": 1708923445
+    },
+    ...
+  ],
+  
+  "blockedSites": [            // Manually Blocked Sites
+    { "url": "facebook.com", "enabled": true }
+  ],
+  
+  "userWhitelist": [           // User AdBlock Exceptions
+    "youtube.com",
+    "github.com"
+  ]
+}
 ```
-*   Checks Safe URLs (Google)
-*   Checks Phishing URLs (Simulated)
-*   Verifies Response Time (<150ms)
-
-### 2. Ad Block Validation
-*   **Tests used**: CanYouBlockIt, AdBlock Tester.
-*   **Metrics**: Tracked in `tests/metrics.json`.
 
 ---
 
-## 🛠️ Developer's Manual
+## 🛠️ Developer Manual
 
-### How to...
+### Application Structure
+*   `BULWARK/`: **Frontend**. Chrome Extension source code.
+    *   `background/`: Service workers (Main engine).
+    *   `dashboard/`: User interface Html/JS.
+    *   `experiments/`: CSS/JS injections.
+*   `ai_cyber_ext_pro/`: **Backend**. Django project.
+    *   `privacy_app/`: API endpoints logic.
+    *   `model/`: ML Model artifacts.
 
-**...Add a blocked site manually?**
-*   Open Extension -> Dashboard -> Settings -> "Add Blocked Site".
-
-**...Update the Ad Blocklist?**
-*   Edit `BULWARK/background/adblocker-tracker.js`.
-*   Add domains to `D3WARD_RULES` array.
-*   *Requires Extension Reload*.
-
-**...Adjust AI Sensitivity?**
-*   Edit `ai_cyber_ext_pro/core/views.py` (Backend).
-*   Change the logic in `predict_risk` function (lines ~60-80).
-
-**...Re-train the AI Model?**
-1.  Add new phishing URLs to a dataset.
-2.  Run: `python ai_cyber_ext_pro/ml/train_model.py`
-3.  Restart the backend server.
+### Common Tasks
+*   **Add AI Dependencies**: Update `requirements.txt` and run `pip install -r requirements.txt`.
+*   **Modify Blocking Rules**: Edit `AD_RULES` in `BULWARK/background/adblocker-tracker.js`.
+*   **Debug Background Script**: Open Extension -> Details -> Background Page (Inspect).
 
 ---
-
 **© 2025 Site Guard Project**
