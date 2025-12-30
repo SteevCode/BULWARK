@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "AI Cyber Guardian (Local Demo)",
+  "version": "1.0",
+  "description": "Local demo extension that queries a local Django AI backend",
+  "permissions": ["tabs", "activeTab", "storage", "scripting"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html" },
+  "host_permissions": ["http://127.0.0.1:8000/*"]
+}
